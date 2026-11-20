@@ -5,13 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sklearn
+from sklearn.model_selection import train_test_split
 
 module_versions = False # to note down version of each module, after checking the versions, set it false to avoid cluttering the terminal
 if module_versions:
     print("Python version:", sys.version)
     print("Pandas:", pd.__version__)
     print("NumPy:", np.__version__)
-    print("Matplotlib:", matplotlib.__version__)
+    print("Matplotlib,pyplot:", plt.matplotlib.__version__)
     print("Seaborn:", sns.__version__)
     print("Scikit-learn:", sklearn.__version__)
 
@@ -20,7 +21,7 @@ csv_path = Path(__file__).parent / "survey_data.csv"
 df = pd.read_csv(csv_path)
 pd.set_option('display.max_columns', None) # to view all the columns
 
-show_data_info = True
+show_data_info = False
 if show_data_info:
     print(df.head(),'\n') # view first few rows
     print("No of rows and columns: ",df.shape, '\n') # 1259 rows and 27 columns
@@ -92,9 +93,9 @@ if show_data_info:
     # 'Androgyne', 'Agender', 'cis-female/femme', 'Guy (-ish) ^_^', 'male leaning androgynous','Male ', 'Man', 'Trans woman', 'msle', 'Neuter',
     # 'Female (trans)', 'queer', 'Female (cis)', 'Mail', 'cis male', 'Malr', 'femail','Cis Man', 'ostensibly male, unsure what that really means']
 
-
-df['gender'] = df['gender'].replace(['Female', 'female', 'Cis Female', 'F', 'Woman', 'f', 'Femake', 'woman', 'cis-female/femme', 'femail', 'Female (cis)', 'Female '], 'Female')
-df['gender'] = df['gender'].replace(['M', 'Male', 'male', 'm', 'Male-ish', 'maile', 'Cis Male', 'Mal', 'Male (CIS)', 'Make', 'Cis Man', 'Malr', 'cis male', 'Mail',  'msle', 'Man' ,  'Male '], 'Male')
+# cleaning gender column 
+df['gender'] = df['gender'].replace(['Female', 'female', 'Cis Female', 'F', 'Woman', 'f', 'Femake', 'woman', 'cis-female/femme', 'femail', 'Female (cis)', 'Female '], 'Female') 
+df['gender'] = df['gender'].replace(['M', 'Male', 'male', 'm', 'Male-ish', 'maile', 'Cis Male', 'Mal', 'Male (CIS)', 'Make', 'Cis Man', 'Malr', 'cis male', 'Mail',  'msle', 'Man' ,  'Male '], 'Male') 
 df['gender'] = df['gender'].replace(['Trans-female','something kinda male?', 'queer/she/they','non-binary',  'Nah','Enby','fluid','Genderqueer',  'Androgyne', 'Agender',  'queer', 'Female (trans)',  'Neuter', 'Trans woman', 'male leaning androgynous', 'Guy (-ish) ^_^' , 'ostensibly male, unsure what that really means'], 'Others')
 
 
@@ -102,10 +103,45 @@ if show_data_info:
     print("total types of genders (After Cleaning): ", df["gender"].nunique()) # now only three types
     print(df['gender'].value_counts()) # majorly men (986) followed by female (246) and then others (18), very high imbalance between genders
                                          
-                                   
-                                           
-                                      
-                                           
+
+
+#### Exploratory Data Analysis ####
+
+Run_EDA = True # to run code under if statement and we can switch this off by changing it to False
+
+# let us split data into 80% train and 20% test. So we dont perform EDA on test since it leads to data leakage/studying for exam by using actual exam paper (cheating on exam)
+train, test = train_test_split(df, test_size = 0.2, stratify = df['treatment'], random_state=1) # random_state is used to make your random train-test split reproducible
+
+colour_palette = {"Yes":"#0072B2","No":"#D55E00"} # setting colour for treatment columns
+
+if Run_EDA:
+    print('Dimensions of Train Dataset: ', train.shape) # 1000 rows and 23 columns
+    print('Diminsions of Test Dataset: ', test.shape) # 250 rows and 23 columns
+
+
+    sns.set_style("white")
+    plt.figure(figsize=(10, 8))
+    treatment_proportion = round(train['treatment'].value_counts(normalize = True).reset_index(name = 'percentage'),3) 
+    print("treatment percent df:",treatment_proportion) # 0.505 and 0.495
+    ax = sns.barplot(x = 'treatment', y = 'percentage', data = treatment_proportion, palette = colour_palette)
+
+    for bar in ax.patches:
+        width = bar.get_width()
+        height = bar.get_height()
+        print("height:",height)
+        x,y = bar.get_xy()
+        ax.annotate(f'{height:.1%}', (x + bar.get_width() / 2,height + 0.009), ha = 'center', fontsize=16)
+
+    ax.set_ylim(0, 0.55)
+    ax.set_xlabel("Sought treatment", fontsize = 16)
+    ax.set_ylabel("Percentage", fontsize = 16)
+    ax.set_xticklabels(['Yes', 'No'], fontsize=16, fontweight='bold')
+    ax.tick_params(axis='y', labelsize=16)
+    plt.title('Treatment percentage', fontsize = 16, fontweight = "bold")
+    plt.show()
+
+
+
 
 
 
