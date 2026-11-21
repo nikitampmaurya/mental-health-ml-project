@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import sklearn
 from sklearn.model_selection import train_test_split
+from matplotlib.ticker import PercentFormatter
+
 
 module_versions = False # to note down version of each module, after checking the versions, set it false to avoid cluttering the terminal
 if module_versions:
@@ -104,7 +106,6 @@ if show_data_info:
     print(df['gender'].value_counts()) # majorly men (986) followed by female (246) and then others (18), very high imbalance between genders
                                          
 
-
 #### Exploratory Data Analysis ####
 
 Run_EDA = True # to run code under if statement and we can switch this off by changing it to False
@@ -118,31 +119,43 @@ if Run_EDA:
     print('Dimensions of Train Dataset: ', train.shape) # 1000 rows and 23 columns
     print('Diminsions of Test Dataset: ', test.shape) # 250 rows and 23 columns
 
+    # Starting with our target variable: Treatment column 
 
-    sns.set_style("white")
-    plt.figure(figsize=(10, 8))
-    treatment_proportion = round(train['treatment'].value_counts(normalize = True).reset_index(name = 'percentage'),3) 
-    print("treatment percent df:",treatment_proportion) # 0.505 and 0.495
-    ax = sns.barplot(x = 'treatment', y = 'percentage', data = treatment_proportion, palette = colour_palette)
+    sns.set_style("white") # setting the background of plot 
+    plt.figure(figsize=(10, 8)) # setting dimensions of plot
+    treatment_proportion = round(train['treatment'].value_counts(normalize = True).reset_index(name = 'percentage'),3) # count total no of yes and no within treatment column and turn it into proportions, then put into dataframe with two columns (treatment, percentage)
+    ax = sns.barplot(x = 'treatment', y = 'percentage', data = treatment_proportion, palette = colour_palette) # create bar plot with these columns and colour
 
-    for bar in ax.patches:
-        width = bar.get_width()
-        height = bar.get_height()
-        print("height:",height)
-        x,y = bar.get_xy()
-        ax.annotate(f'{height:.1%}', (x + bar.get_width() / 2,height + 0.009), ha = 'center', fontsize=16)
+    for bar in ax.patches: # for each bar 
+        width = bar.get_width() # get width to place label
+        height = bar.get_height() # get height to place label
+        x,y = bar.get_xy() # get x and y or-ordinate on left hand side bottom
+        ax.annotate(f'{height:.1%}', (x + bar.get_width() / 2,height + 0.005), fontsize=16) # turn proportion into percent, place in the calculated center
 
-    ax.set_ylim(0, 0.55)
-    ax.set_xlabel("Sought treatment", fontsize = 16)
-    ax.set_ylabel("Percentage", fontsize = 16)
-    ax.set_xticklabels(['Yes', 'No'], fontsize=16, fontweight='bold')
-    ax.tick_params(axis='y', labelsize=16)
-    plt.title('Treatment percentage', fontsize = 16, fontweight = "bold")
+
+    ax.set_xlabel("Sought treatment", fontsize = 16) # rename the x axis label
+    ax.set_ylabel("Percentage", fontsize = 16) # rename the y axis label
+    ax.set_xticklabels(['Yes', 'No'], fontsize=16, fontweight='bold') # make yes and no bold
+    ax.tick_params(axis='y', labelsize=16) # make tick bold
+    ax.yaxis.set_major_formatter(PercentFormatter(1)) # turn proportions into percent
+    plt.title('Treatment percentage', fontsize = 16, fontweight = "bold") # make title bold 
+    plt.show() # to show the plot
+
+    # My observations: 
+    # # Result: Nearly equal proportions of people sought (50.5%) and did not seek treatment (49.5%).
+    # Both classes are well represented, so resampling is not required to address class imbalance.
+    # When evaluating the model, consider recall to minimise false negatives.
+
+
+    # Next is Age Column
+
+    sns.set_style("white") # setting the background of plot 
+    plt.figure(figsize=(10, 8)) # setting dimensions of plot
+    ax = sns.histplot(x="age", data = train, bins = 20, hue="treatment", palette=colour_palette) # create histogram to view distributions with these columns and colour
+
+    ax.set_xlabel("Age (in years)", fontsize = 16) # rename the x axis label
+    plt.title("Age of participants", fontsize = 16, fontweight="bold") # set title, its font style and size
     plt.show()
-
-
-
-
-
+    # distribution between two group is very overlapping, may not alone stand as strong predictor
 
 
